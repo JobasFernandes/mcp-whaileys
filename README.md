@@ -55,6 +55,7 @@ Este servidor implementa análise de AST usando **ts-morph** para extrair declar
 | `whaileys_check_updates` | Verifica se há atualizações disponíveis no GitHub |
 | `whaileys_update` | Atualiza o repositório local para a versão mais recente |
 | `whaileys_status` | Mostra status atual do repositório (commits, sincronização) |
+| `whaileys_self_update` | Verifica/atualiza o pacote `mcp-whaileys` no npm |
 
 ## Categorias Suportadas
 
