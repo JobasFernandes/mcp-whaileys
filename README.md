@@ -28,7 +28,10 @@ Este servidor implementa análise de AST usando **ts-morph** para extrair declar
 | `whaileys_extrair_tipos` | Extrai todas as declarações via AST |
 | `whaileys_buscar_tipo` | Busca definição de tipo por nome exato |
 | `whaileys_buscar_fuzzy` | Busca com correspondência aproximada |
+| `whaileys_buscar_contexto` | Busca semântica por tópico/domínio com ranking |
 | `whaileys_listar_exports` | Lista todos os exports agrupados |
+| `whaileys_resumo_modulo` | Resume um módulo com arquivos, categorias e símbolos-chave |
+| `whaileys_topicos` | Mapa de tópicos práticos (auth, socket, message, media, etc.) |
 
 ### Ferramentas por Categoria
 
@@ -229,6 +232,24 @@ whaileys_buscar_tipo({ nome: "WAMessage" })
 
 ```javascript
 whaileys_buscar_fuzzy({ query: "message send auth" })
+```
+
+### Busca contextual por domínio
+
+```javascript
+whaileys_buscar_contexto({ query: "auth state", modulo: "Utils", limite: 10 })
+```
+
+### Resumo orientado de módulo
+
+```javascript
+whaileys_resumo_modulo({ modulo: "Socket", destaque: 15 })
+```
+
+### Descoberta por tópicos
+
+```javascript
+whaileys_topicos({ topico: "media" })
 ```
 
 ### Ver todas as funções do módulo Utils

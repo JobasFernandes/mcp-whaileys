@@ -98,7 +98,8 @@ export function registerAstTools(mcpServer: McpServer, srcPath: string) {
     },
     async ({ query, limite }) => {
       const parser = new AstParser(srcPath)
-      const results = parser.fuzzySearch(query, limite || 20)
+      const rankedResults = parser.searchByContext(query, limite || 20)
+      const results = rankedResults.map((entry) => entry.type)
 
       if (results.length === 0) {
         return {
@@ -110,8 +111,15 @@ export function registerAstTools(mcpServer: McpServer, srcPath: string) {
       let result = `# 🔍 Resultados para "${query}"\n\n`
       result += `**Encontrados:** ${results.length} tipos\n\n`
 
-      for (const type of results) {
+      for (let index = 0; index < results.length; index++) {
+        const type = results[index]
+        const ranking = rankedResults[index]
         result += `- ${CATEGORY_EMOJI[type.kind]} **\`${type.name}\`** (${type.kind}) - \`${type.file}\`\n`
+        result += `  - score: ${ranking.score}`
+        if (ranking.matchedIn.length > 0) {
+          result += ` | match: ${ranking.matchedIn.join(', ')}`
+        }
+        result += '\n'
         if (type.docs) result += `  > ${type.docs.substring(0, 100)}...\n`
       }
 

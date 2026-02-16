@@ -91,6 +91,20 @@ export interface DependencyInfo {
   reExportsFrom: string[]
 }
 
+export interface RankedTypeResult {
+  type: ExtractedType
+  score: number
+  matchedIn: string[]
+}
+
+export interface ModuleSummary {
+  module: string
+  total: number
+  byKind: Record<ExtractedKind, number>
+  files: string[]
+  highlights: ExtractedType[]
+}
+
 export class AstParser {
   private project: Project
   private whaileysSrcPath: string
@@ -607,32 +621,165 @@ export class AstParser {
   }
 
   fuzzySearch(query: string, maxResults = 20): ExtractedType[] {
+    return this.searchByContext(query, maxResults).map((result) => result.type)
+  }
+
+  searchByContext(
+    query: string,
+    maxResults = 20,
+    filters?: { module?: string; kind?: ExtractedKind },
+  ): RankedTypeResult[] {
+    const normalizedQuery = query.toLowerCase().trim()
+    if (!normalizedQuery) return []
+
+    const words = normalizedQuery.split(/\s+/).filter((word) => word.length > 1)
     const allTypes = this.extractAllTypes()
-    const lowerQuery = query.toLowerCase()
-    const words = lowerQuery.split(/\s+/)
+    const targetModule = filters?.module?.toLowerCase()
 
-    const scored = allTypes.map((type) => {
-      let score = 0
-      const lowerName = type.name.toLowerCase()
-      const lowerDocs = (type.docs || '').toLowerCase()
-
-      if (lowerName === lowerQuery) score += 100
-      else if (lowerName.startsWith(lowerQuery)) score += 50
-      else if (lowerName.includes(lowerQuery)) score += 25
-
-      for (const word of words) {
-        if (lowerName.includes(word)) score += 10
-        if (lowerDocs.includes(word)) score += 5
-      }
-
-      return { type, score }
+    const candidates = allTypes.filter((type) => {
+      if (filters?.kind && type.kind !== filters.kind) return false
+      if (!targetModule) return true
+      return (
+        type.module.toLowerCase() === targetModule ||
+        type.file.toLowerCase().includes(targetModule)
+      )
     })
 
-    return scored
-      .filter((s) => s.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, maxResults)
-      .map((s) => s.type)
+    const ranked = candidates
+      .map((type) => this.rankType(type, normalizedQuery, words))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score || a.type.name.localeCompare(b.type.name))
+
+    return ranked.slice(0, maxResults)
+  }
+
+  summarizeModule(moduleName: string, highlightLimit = 12): ModuleSummary {
+    const types = this.getTypesFromModule(moduleName)
+    const byKind: Record<ExtractedKind, number> = {
+      interface: 0,
+      type: 0,
+      enum: 0,
+      function: 0,
+      class: 0,
+      variable: 0,
+      namespace: 0,
+      're-export': 0,
+    }
+
+    for (const type of types) {
+      byKind[type.kind] += 1
+    }
+
+    const files = Array.from(new Set(types.map((type) => type.file))).sort((a, b) => a.localeCompare(b))
+
+    const highlightOrder: Record<ExtractedKind, number> = {
+      function: 0,
+      interface: 1,
+      type: 2,
+      class: 3,
+      enum: 4,
+      variable: 5,
+      namespace: 6,
+      're-export': 7,
+    }
+
+    const highlights = [...types]
+      .sort((a, b) => {
+        const aOrder = highlightOrder[a.kind]
+        const bOrder = highlightOrder[b.kind]
+        if (aOrder !== bOrder) return aOrder - bOrder
+
+        const aHasDocs = a.docs ? 1 : 0
+        const bHasDocs = b.docs ? 1 : 0
+        if (aHasDocs !== bHasDocs) return bHasDocs - aHasDocs
+
+        return a.name.localeCompare(b.name)
+      })
+      .slice(0, Math.max(1, highlightLimit))
+
+    const detectedModule =
+      types.length > 0 ? types[0].module : moduleName
+
+    return {
+      module: detectedModule,
+      total: types.length,
+      byKind,
+      files,
+      highlights,
+    }
+  }
+
+  private rankType(type: ExtractedType, normalizedQuery: string, words: string[]): RankedTypeResult {
+    let score = 0
+    const matchedIn = new Set<string>()
+
+    const name = type.name.toLowerCase()
+    const docs = (type.docs || '').toLowerCase()
+    const signature = type.signature.toLowerCase()
+    const file = type.file.toLowerCase()
+    const moduleName = type.module.toLowerCase()
+
+    if (name === normalizedQuery) {
+      score += 160
+      matchedIn.add('name:exact')
+    } else if (name.startsWith(normalizedQuery)) {
+      score += 90
+      matchedIn.add('name:prefix')
+    } else if (name.includes(normalizedQuery)) {
+      score += 60
+      matchedIn.add('name:contains')
+    }
+
+    if (signature.includes(normalizedQuery)) {
+      score += 45
+      matchedIn.add('signature')
+    }
+
+    if (docs.includes(normalizedQuery)) {
+      score += 30
+      matchedIn.add('docs')
+    }
+
+    if (file.includes(normalizedQuery)) {
+      score += 35
+      matchedIn.add('file')
+    }
+
+    if (moduleName.includes(normalizedQuery)) {
+      score += 40
+      matchedIn.add('module')
+    }
+
+    for (const word of words) {
+      if (word.length < 2) continue
+      if (name.includes(word)) {
+        score += 20
+        matchedIn.add('name:word')
+      }
+      if (signature.includes(word)) {
+        score += 12
+        matchedIn.add('signature:word')
+      }
+      if (docs.includes(word)) {
+        score += 8
+        matchedIn.add('docs:word')
+      }
+      if (file.includes(word) || moduleName.includes(word)) {
+        score += 10
+        matchedIn.add('path:word')
+      }
+    }
+
+    if (normalizedQuery.includes(type.kind)) {
+      score += 15
+      matchedIn.add('kind')
+    }
+
+    return {
+      type,
+      score,
+      matchedIn: Array.from(matchedIn),
+    }
   }
 
   getTypesFromModule(moduleName: string): ExtractedType[] {
