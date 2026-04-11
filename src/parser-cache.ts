@@ -1,4 +1,5 @@
 import { AstParser, ExtractedType } from './ast-parser.js'
+import { ProtoParser } from './proto-parser.js'
 
 interface CacheEntry<T> {
   data: T
@@ -11,6 +12,7 @@ export class ParserCache {
   private static instances = new Map<string, ParserCache>()
 
   private parser: AstParser | null = null
+  private protoParser: ProtoParser | null = null
   private typesCache: CacheEntry<ExtractedType[]> | null = null
   private ttl: number
 
@@ -37,6 +39,13 @@ export class ParserCache {
     return this.parser
   }
 
+  getProtoParser(): ProtoParser {
+    if (!this.protoParser) {
+      this.protoParser = new ProtoParser(this.srcPath)
+    }
+    return this.protoParser
+  }
+
   getCachedTypes(): ExtractedType[] {
     if (this.typesCache && Date.now() - this.typesCache.timestamp < this.ttl) {
       return this.typesCache.data
@@ -55,6 +64,8 @@ export class ParserCache {
 
   invalidate(): void {
     this.parser = null
+    this.protoParser?.invalidate()
+    this.protoParser = null
     this.typesCache = null
     console.error('🔄 ParserCache invalidated')
   }

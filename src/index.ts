@@ -1081,6 +1081,8 @@ import { registerRepoTools, registerResources } from './tools/repo-tools.js'
 import { registerContentTools } from './tools/content-tools.js'
 import { registerDomainTools } from './tools/domain-tools.js'
 import { registerGuideTools } from './tools/guide-tools.js'
+import { registerProtoTools } from './tools/proto-tools.js'
+import { registerExampleTools } from './tools/example-tools.js'
 
 const require = createRequire(import.meta.url)
 const APP_VERSION = (require('../package.json') as { version?: string }).version ?? '0.0.0'
@@ -1116,6 +1118,8 @@ async function main() {
   registerContentTools(mcpServer, srcPath)
   registerDomainTools(mcpServer)
   registerGuideTools(mcpServer)
+  registerProtoTools(mcpServer, srcPath)
+  registerExampleTools(mcpServer)
   registerResources(mcpServer, srcPath)
 
   const transport = new StdioServerTransport()
