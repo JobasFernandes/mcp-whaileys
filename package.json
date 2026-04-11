@@ -1,7 +1,7 @@
 {
   "name": "mcp-whaileys",
-  "version": "1.2.0",
-  "description": "MCP Server para contexto da biblioteca Whaileys (WhatsApp) - Interfaces, Types, Enums, Functions, Classes. Auto-download do repositório na primeira execução.",
+  "version": "2.0.0",
+  "description": "MCP Server para contexto completo da biblioteca Whaileys (WhatsApp) - AST Types, Domain Knowledge, WAProto Parser, Code Examples, Guides. Auto-download do repositório na primeira execução.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -29,7 +29,11 @@
     "baileys",
     "typescript",
     "ai",
-    "copilot"
+    "copilot",
+    "waproto",
+    "protobuf",
+    "domain-knowledge",
+    "code-examples"
   ],
   "author": "Joseph",
   "license": "MIT",
