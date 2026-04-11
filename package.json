@@ -1,6 +1,6 @@
 {
   "name": "mcp-whaileys",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "MCP Server para contexto completo da biblioteca Whaileys (WhatsApp) - AST Types, Domain Knowledge, WAProto Parser, Code Examples, Guides. Auto-download do repositório na primeira execução.",
   "type": "module",
   "main": "dist/index.js",
