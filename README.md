@@ -6,7 +6,9 @@ Servidor MCP (Model Context Protocol) para fornecer contexto completo da bibliot
 
 ## Funcionalidades
 
-Este servidor implementa análise de AST usando **ts-morph** para extrair declarações exportadas, incluindo:
+Este servidor combina **análise de AST** com **knowledge base de domínio** para fornecer contexto completo sobre WhatsApp/Baileys:
+
+### Análise de AST (ts-morph)
 
 - **Interfaces** - com propriedades, métodos, call signatures e index signatures
 - **Type Aliases** - com type parameters e definições completas
@@ -17,9 +19,16 @@ Este servidor implementa análise de AST usando **ts-morph** para extrair declar
 - **Namespaces** - estrutura de namespaces exportados
 - **Re-exports** - análise de re-exportações entre módulos
 
-## Ferramentas Disponíveis
+### Domain Knowledge (v2.0)
 
-### Ferramentas Básicas
+- **12 knowledge bases** curadas com referência completa de tipos, métodos e padrões
+- **WAProto parser** para navegação dinâmica de 80+ tipos protobuf
+- **36 code examples** prontos para copiar/colar
+- **Guides** para media, groups, calls, chat e connection
+
+## Ferramentas Disponíveis (30 tools)
+
+### Ferramentas de AST
 
 | Ferramenta | Descrição |
 |------------|-----------|
@@ -50,6 +59,32 @@ Este servidor implementa análise de AST usando **ts-morph** para extrair declar
 | `whaileys_estatisticas` | Estatísticas detalhadas da biblioteca |
 | `whaileys_hierarquia` | Mostra herança (extends/implements) |
 | `whaileys_dependencias` | Analisa dependências entre módulos |
+
+### Ferramentas de Domínio
+
+| Ferramenta | Descrição |
+|------------|-----------|
+| `whaileys_messages` | Referência completa de todos os tipos de mensagem (text, image, buttons, poll, etc.) |
+| `whaileys_interactive` | Estruturas de mensagens interativas (buttons, lists, templates, carousel, native flow) |
+| `whaileys_jid` | Formatos JID/LID, JIDs especiais, funções utilitárias e migração LID |
+| `whaileys_events` | Referência completa do BaileysEventMap com payloads e categorias |
+
+### Ferramentas de Referência
+
+| Ferramenta | Descrição |
+|------------|-----------|
+| `whaileys_socket_methods` | Métodos do WASocket organizados por categoria (messaging, groups, media, etc.) |
+| `whaileys_chat` | Operações de chat (modifications, presence, privacy, labels) |
+| `whaileys_connection` | Referência de conexão/autenticação (config, states, auth, reconnect) |
+| `whaileys_guides` | Guias completos para media, groups, calls e mappings |
+
+### Ferramentas WAProto & Examples
+
+| Ferramenta | Descrição |
+|------------|-----------|
+| `whaileys_proto` | Lista/busca campos de proto.Message (80+ tipos em 14 categorias) |
+| `whaileys_proto_type` | Definição completa de um tipo proto (fields, enums, oneofs, nested types) |
+| `whaileys_examples` | 36 code examples prontos para copiar (text, media, interactive, groups, connection) |
 
 ### Ferramentas de Auto-Update
 
@@ -252,6 +287,71 @@ whaileys_resumo_modulo({ modulo: "Socket", destaque: 15 })
 whaileys_topicos({ topico: "media" })
 ```
 
+### Consultar tipos de mensagem
+
+```javascript
+whaileys_messages()
+whaileys_messages({ type: "buttons" })
+whaileys_messages({ category: "interactive" })
+```
+
+### Consultar mensagens interativas
+
+```javascript
+whaileys_interactive({ type: "carousel" })
+```
+
+### Referência de eventos
+
+```javascript
+whaileys_events()
+whaileys_events({ event: "messages.upsert" })
+whaileys_events({ category: "messaging" })
+```
+
+### Referência JID/LID
+
+```javascript
+whaileys_jid()
+whaileys_jid({ topic: "lid" })
+```
+
+### Métodos do WASocket
+
+```javascript
+whaileys_socket_methods()
+whaileys_socket_methods({ category: "groups" })
+whaileys_socket_methods({ method: "sendMessage" })
+```
+
+### Guias de referência
+
+```javascript
+whaileys_guides({ topic: "media" })
+whaileys_guides({ topic: "groups" })
+whaileys_connection({ topic: "config" })
+whaileys_chat({ topic: "modifications" })
+```
+
+### Navegar WAProto
+
+```javascript
+whaileys_proto()
+whaileys_proto({ category: "interactive" })
+whaileys_proto({ search: "poll" })
+whaileys_proto_type({ name: "ButtonsMessage" })
+whaileys_proto_type({ name: "InteractiveMessage" })
+```
+
+### Code examples prontos
+
+```javascript
+whaileys_examples()
+whaileys_examples({ id: "send-carousel" })
+whaileys_examples({ search: "poll" })
+whaileys_examples({ tag: "connection" })
+```
+
 ### Ver todas as funções do módulo Utils
 
 ```javascript
@@ -345,7 +445,7 @@ O servidor também expõe recursos via MCP Resources:
 
 ## Tecnologias
 
-- **@modelcontextprotocol/sdk** v1.24.3 - SDK oficial do MCP
+- **@modelcontextprotocol/sdk** v1.26.0 - SDK oficial do MCP
 - **ts-morph** v27.0.2 - Parser de AST para TypeScript
 - **zod** v4.1.13 - Validação de schemas
 
