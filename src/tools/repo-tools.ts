@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { AstParser } from '../ast-parser.js'
+import { ParserCache } from '../parser-cache.js'
 import {
   checkAndUpdate,
   checkForUpdates,
@@ -118,6 +119,10 @@ export function registerRepoTools(mcpServer: McpServer, srcPath: string, appVers
     },
     async () => {
       const updateResult = await checkAndUpdate()
+
+      if (updateResult.updated) {
+        ParserCache.invalidateAll()
+      }
 
       let result = '# 🔄 Atualização do Repositório\n\n'
 
